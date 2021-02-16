@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # alias echo for color escape
 echo "\033[0m" | grep -q 033 && { alias echo="echo -e"; }
@@ -10,12 +10,11 @@ ps -ef|grep `basename $0`|grep -v "$$"|grep -v grep && {
 }
 
 
+remote_host=remote-server.com # [USER@]HOST
+remote_path=/remote/server/path/ # endswith '/'
 
-dest_host=remote-server.com
-dest_dir=/remote/server/path
-
-base_dir="$HOME"
-backup_dir="
+local_path="$HOME"
+target_paths="
 .bash*
 .zsh*
 .vim*
@@ -52,13 +51,20 @@ exclude_path="
 "
 
 
-echo "\e[32mStart Rsync \e[33m${base_dir} ...\e[0m" &&\
-    cd $base_dir || exit 1
+echo "\e[32mStart Rsync \e[33m${local_path} ...\e[0m" &&\
+    cd $local_path || exit 1
 
 excludes=`echo "$exclude_path" | grep -oE '^[^#]+' | xargs -I {} echo "--exclude={}"`
 includes=`echo "$include_path" | grep -oE '^[^#]+' | xargs -I {} echo "--include={}"`
-backups=`echo "$backup_dir" | grep -oE '^[^#]+' | xargs echo`
 
-echo rsync -n -vzahPR --delete-after $excludes $includes $backups ${dest_host}:$dest_dir
-     rsync    -vzahPR --delete-after $excludes $includes $backups ${dest_host}:$dest_dir
+# Sync local to remote server
+from_paths=`echo "$target_paths" | grep -oE '^[^#]+' | xargs echo`
+to_paths=${remote_host}:$remote_path
+
+# Sync remote server to local, uncomment below
+# from_paths=`echo "$target_paths" | grep -oE '^[^#]+' | xargs -I {} echo "${remote_host}:${remote_path}{}"`
+# to_paths=$local_path
+
+echo rsync -n -vzahPR --delete-after $excludes $includes $from_paths $to_paths
+     rsync    -vzahPR --delete-after $excludes $includes $from_paths $to_paths
 
