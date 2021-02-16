@@ -11,7 +11,7 @@ Usage: \e[32m$0 COMMAND REPOSITORY_PATHs...\e[0m
 
 Examples:
     \e[32m$0 'git fetch' ~/Documents/works
-    $0 'git pull' ~/Documents/github"
+    $0 'git pull' ~/Documents/github\e[0m"
 }
 
 if [ $# -eq 0 ]; then get_start; exit 0; fi
@@ -31,9 +31,9 @@ ps -ef|grep `basename $0`|grep -v "$$"|grep -v grep && {
 
 # Find all Git in argument directories and execute Git update
 foreach_dir() {
-    cmd=$1; shift
+    cwd=$PWD; cmd=$1; shift
     for dir in $@; do
-        dir=`realpath $dir`
+        cd $cwd; dir=$(realpath $dir)
         echo "\e[1;32m[\033[36m`date +%H:%M:%S`\e[1;32m] Finding Git from \e[34m$dir\e[1;32m ... \t\e[0m"
 
         find $dir -name .git -type d 2>/dev/null | xargs -r dirname | while read repository; do
@@ -45,10 +45,9 @@ foreach_dir() {
 
 
 
-arg1=$1; shift
-foreach_dir "$arg1" $@
+foreach_dir "$@"
 
-## Examples
+# # Examples
 # git_dir=(
 #     ~/Documents
 #     ~/Documents/projects
@@ -57,6 +56,7 @@ foreach_dir "$arg1" $@
 # 
 # foreach_dir ${git_dir[@]}
 
+# # or
 # foreach_dir \
 #     ~/Documents \
 #     ~/Documents/projects \
